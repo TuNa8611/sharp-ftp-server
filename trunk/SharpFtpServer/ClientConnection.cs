@@ -361,7 +361,7 @@ namespace SharpFtpServer
 
                     _log.Info(logEntry);
 
-                    if (response.StartsWith("221") || _controlClient == null || !_controlClient.Connected)
+                    if (_controlClient == null || !_controlClient.Connected)
                     {
                         break;
                     }
@@ -369,6 +369,11 @@ namespace SharpFtpServer
                     {
                         _controlWriter.WriteLine(response);
                         _controlWriter.Flush();
+
+                        if (response.StartsWith("221"))
+                        {
+                            break;
+                        }
 
                         if (cmd == "AUTH")
                         {
