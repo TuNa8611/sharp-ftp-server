@@ -21,13 +21,21 @@ namespace SharpFtpServer
         private TcpListener _listener;
         private List<ClientConnection> _activeConnections;
 
+        private IPEndPoint _localEndPoint;
+
         public FtpServer()
+            : this(IPAddress.Any, 21)
         {
+        }
+
+        public FtpServer(IPAddress ipAddress, int port)
+        {
+            _localEndPoint = new IPEndPoint(ipAddress, port);
         }
 
         public void Start()
         {
-            _listener = new TcpListener(IPAddress.Any, 21);
+            _listener = new TcpListener(_localEndPoint);
 
             _log.Info("#Version: 1.0");
             _log.Info("#Fields: date time c-ip c-port cs-username cs-method cs-uri-stem sc-status sc-bytes cs-bytes s-name s-port");

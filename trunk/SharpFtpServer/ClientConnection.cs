@@ -349,6 +349,16 @@ namespace SharpFtpServer
                                 response = FileSize(arguments);
                                 break;
 
+                            // Extensions defined by rfc 2428
+                            case "EPRT":
+                                response = EPort(arguments);
+                                logEntry.CPort = _dataEndpoint.Port.ToString();
+                                break;
+                            case "EPSV":
+                                response = EPassive();
+                                logEntry.SPort = ((IPEndPoint)_passiveListener.LocalEndpoint).Port.ToString();
+                                break;
+
                             default:
                                 response = "502 Command not implemented";
                                 break;
@@ -542,6 +552,24 @@ namespace SharpFtpServer
             return "200 Data Connection Established";
         }
 
+        private string EPort(string hostPort)
+        {
+            _dataConnectionType = DataConnectionType.Active;
+
+            char delimiter = hostPort[0];
+
+            string[] rawSplit = hostPort.Split(new char[] { delimiter }, StringSplitOptions.RemoveEmptyEntries);
+
+            char ipType = rawSplit[0][0];
+
+            string ipAddress = rawSplit[1];
+            string port = rawSplit[2];
+
+            _dataEndpoint = new IPEndPoint(IPAddress.Parse(ipAddress), int.Parse(port));
+
+            return "200 Data Connection Established";
+        }
+
         private string Passive()
         {
             _dataConnectionType = DataConnectionType.Passive;
@@ -562,6 +590,20 @@ namespace SharpFtpServer
                 Array.Reverse(portArray);
 
             return string.Format("227 Entering Passive Mode ({0},{1},{2},{3},{4},{5})", address[0], address[1], address[2], address[3], portArray[0], portArray[1]);
+        }
+
+        private string EPassive()
+        {
+            _dataConnectionType = DataConnectionType.Passive;
+
+            IPAddress localIp = ((IPEndPoint)_controlClient.Client.LocalEndPoint).Address;
+
+            _passiveListener = new TcpListener(localIp, 0);
+            _passiveListener.Start();
+
+            IPEndPoint passiveListenerEndpoint = (IPEndPoint)_passiveListener.LocalEndpoint;
+
+            return string.Format("229 Entering Extended Passive Mode (|||{0}|)", passiveListenerEndpoint.Port);
         }
 
         private string Type(string typeCode, string formatControl)
@@ -863,7 +905,7 @@ namespace SharpFtpServer
         {
             if (_dataConnectionType == DataConnectionType.Active)
             {
-                _dataClient = new TcpClient();
+                _dataClient = new TcpClient(_dataEndpoint.AddressFamily);
                 _dataClient.BeginConnect(_dataEndpoint.Address, _dataEndpoint.Port, DoDataConnectionOperation, state);
             }
             else

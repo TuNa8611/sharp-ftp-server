@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Net;
 
 namespace SharpFtpServer
 {
@@ -9,7 +10,7 @@ namespace SharpFtpServer
     {
         static void Main(string[] args)
         {
-            using (FtpServer server = new FtpServer())
+            using (FtpServer server = new FtpServer(IPAddress.IPv6Loopback, 21))
             {
                 server.Start();
 
