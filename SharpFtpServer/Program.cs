@@ -10,7 +10,7 @@ namespace SharpFtpServer
     {
         static void Main(string[] args)
         {
-            using (FtpServer server = new FtpServer(IPAddress.IPv6Loopback, 21))
+            using (FtpServer server = new FtpServer(IPAddress.IPv6Any, 21))
             {
                 server.Start();
 
