@@ -123,6 +123,7 @@ namespace SharpFtpServer
         private FileStructureType _fileStructureType = FileStructureType.File;
 
         private string _username;
+        private string _password;
         private string _root;
         private string _currentDirectory;
         private IPEndPoint _dataEndpoint;
@@ -168,7 +169,7 @@ namespace SharpFtpServer
             _controlWriter.WriteLine("220 Service Ready.");
             _controlWriter.Flush();
 
-            _validCommands.AddRange(new string[] { "AUTH", "USER", "PASS", "QUIT", "HELP", "NOOP" });
+            _validCommands.AddRange(new string[] { "AUTH", "USER", "PASS", "ACCT", "QUIT", "HELP", "NOOP" });
 
             string line;
 
@@ -301,7 +302,7 @@ namespace SharpFtpServer
                                 response = "200 OK";
                                 break;
                             case "ACCT":
-                                response = "200 OK";
+                                response = Account(arguments);
                                 break;
                             case "ALLO":
                                 response = "200 OK";
@@ -471,7 +472,14 @@ namespace SharpFtpServer
 
         private string Password(string password)
         {
-            _currentUser = UserStore.Validate(_username, password);
+            _password = password;
+
+            return "332 Need Two Factor Code";
+        }
+
+        private string Account(string twoFactorCode)
+        {
+            _currentUser = UserStore.Validate(_username, _password, twoFactorCode);
 
             if (_currentUser != null)
             {

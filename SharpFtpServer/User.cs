@@ -17,5 +17,8 @@ namespace SharpFtpServer
 
         [XmlAttribute("homedir")]
         public string HomeDir { get; set; }
+
+        [XmlAttribute("twofactorsecret")]
+        public string TwoFactorSecret { get; set; }
     }
 }
