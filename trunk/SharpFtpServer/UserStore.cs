@@ -28,7 +28,8 @@ namespace SharpFtpServer
                 _users.Add(new User {
                     Username = "rick",
                     Password = "test",
-                    HomeDir = "C:\\Utils"
+                    HomeDir = "C:\\Utils",
+                    TwoFactorSecret = "1234567890", // Base32 Encoded: gezdgnbvgy3tqojq
                 });
 
                 using (StreamWriter w = new StreamWriter("users.xml"))
@@ -38,11 +39,16 @@ namespace SharpFtpServer
             }
         }
 
-        public static User Validate(string username, string password)
+        public static User Validate(string username, string password, string twoFactorCode)
         {
             User user = (from u in _users where u.Username == username && u.Password == password select u).SingleOrDefault();
 
-            return user;
+            if (TwoFactor.TimeBasedOneTimePassword.IsValid(user.TwoFactorSecret, twoFactorCode))
+            {
+                return user;
+            }
+
+            return null;
         }
     }
 }
