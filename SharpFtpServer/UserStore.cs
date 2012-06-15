@@ -29,7 +29,7 @@ namespace SharpFtpServer
                     Username = "rick",
                     Password = "test",
                     HomeDir = "C:\\Utils",
-                    TwoFactorSecret = "1234567890", // Base32 Encoded: gezdgnbvgy3tqojq
+                    //TwoFactorSecret = "1234567890", // Base32 Encoded: gezdgnbvgy3tqojq
                 });
 
                 using (StreamWriter w = new StreamWriter("users.xml"))
@@ -37,6 +37,13 @@ namespace SharpFtpServer
                     serializer.Serialize(w, _users);
                 }
             }
+        }
+
+        public static User Validate(string username, string password)
+        {
+            User user = (from u in _users where u.Username == username && u.Password == password select u).SingleOrDefault();
+
+            return user;
         }
 
         public static User Validate(string username, string password, string twoFactorCode)

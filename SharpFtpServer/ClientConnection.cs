@@ -474,7 +474,25 @@ namespace SharpFtpServer
         {
             _password = password;
 
-            return "332 Need Two Factor Code";
+            SharpFtpServer.User user = UserStore.Validate(_username, _password);
+
+            if (user != null)
+            {
+                if (!string.IsNullOrEmpty(user.TwoFactorSecret))
+                {
+                    return "332 Need Two Factor Code";
+                }
+                else
+                {
+                    _currentUser = user;
+                    _root = _currentUser.HomeDir;
+                    _currentDirectory = _root;
+
+                    return "230 User logged in";
+                }
+            }
+
+            return "530 Not logged in (username and password don't match)";
         }
 
         private string Account(string twoFactorCode)
