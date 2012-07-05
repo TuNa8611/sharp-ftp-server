@@ -48,6 +48,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClientConnection.cs" />
+    <Compile Include="FtpReplies.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>FtpReplies.resx</DependentUpon>
+    </Compile>
     <Compile Include="FtpServer.cs" />
     <Compile Include="LogEntry.cs" />
     <Compile Include="Program.cs" />
@@ -59,6 +64,7 @@
   <ItemGroup>
     <Content Include="rfc2228.txt" />
     <Content Include="rfc2389.txt" />
+    <Content Include="rfc2640.txt" />
     <Content Include="rfc3659.txt" />
     <Content Include="rfc959.txt" />
   </ItemGroup>
@@ -77,6 +83,13 @@
       <Project>{903279E1-4D47-4F18-A6F6-ED61EAAD8176}</Project>
       <Name>TwoFactor</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="FtpReplies.fr.resx" />
+    <EmbeddedResource Include="FtpReplies.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>FtpReplies.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
