@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using log4net;
+using System.Globalization;
 
 namespace SharpFtpServer
 {
@@ -22,7 +23,7 @@ namespace SharpFtpServer
 
         #region Copy Stream Implementations
 
-        private static long CopyStream(Stream input, Stream output, int bufferSize)
+        private long CopyStream(Stream input, Stream output, int bufferSize)
         {
             byte[] buffer = new byte[bufferSize];
             int count = 0;
@@ -37,15 +38,15 @@ namespace SharpFtpServer
             return total;
         }
 
-        private static long CopyStreamAscii(Stream input, Stream output, int bufferSize)
+        private long CopyStreamAscii(Stream input, Stream output, int bufferSize)
         {
             char[] buffer = new char[bufferSize];
             int count = 0;
             long total = 0;
 
-            using (StreamReader rdr = new StreamReader(input, Encoding.ASCII))
+            using (StreamReader rdr = new StreamReader(input, _stringEncoding))
             {
-                using (StreamWriter wtr = new StreamWriter(output, Encoding.ASCII))
+                using (StreamWriter wtr = new StreamWriter(output, _stringEncoding))
                 {
                     while ((count = rdr.Read(buffer, 0, buffer.Length)) > 0)
                     {
@@ -137,6 +138,8 @@ namespace SharpFtpServer
         private User _currentUser;
 
         private List<string> _validCommands;
+
+        private Encoding _stringEncoding = Encoding.ASCII;
 
         public ClientConnection(TcpClient client)
         {
@@ -236,6 +239,8 @@ namespace SharpFtpServer
                                 _passiveListener = null;
                                 _dataClient = null;
 
+                                FtpReplies.Culture = CultureInfo.CurrentCulture;
+
                                 response = "220 Service ready for new user";
                                 break;
                             case "PORT":
@@ -308,25 +313,25 @@ namespace SharpFtpServer
                                 response = "200 OK";
                                 break;
                             case "NLST":
-                                response = "502 Command not implemented";
+                                response = "502 " + FtpReplies.COMMAND_NOT_IMPLEMENTED;
                                 break;
                             case "SITE":
-                                response = "502 Command not implemented";
+                                response = "502 " + FtpReplies.COMMAND_NOT_IMPLEMENTED;
                                 break;
                             case "STAT":
-                                response = "502 Command not implemented";
+                                response = "502 " + FtpReplies.COMMAND_NOT_IMPLEMENTED;
                                 break;
                             case "HELP":
-                                response = "502 Command not implemented";
+                                response = "502 " + FtpReplies.COMMAND_NOT_IMPLEMENTED;
                                 break;
                             case "SMNT":
-                                response = "502 Command not implemented";
+                                response = "502 " + FtpReplies.COMMAND_NOT_IMPLEMENTED;
                                 break;
                             case "REST":
-                                response = "502 Command not implemented";
+                                response = "502 " + FtpReplies.COMMAND_NOT_IMPLEMENTED;
                                 break;
                             case "ABOR":
-                                response = "502 Command not implemented";
+                                response = "502 " + FtpReplies.COMMAND_NOT_IMPLEMENTED;
                                 break;
 
                             // Extensions defined by rfc 2228
@@ -360,8 +365,13 @@ namespace SharpFtpServer
                                 logEntry.SPort = ((IPEndPoint)_passiveListener.LocalEndpoint).Port.ToString();
                                 break;
 
+                            // Extensions defined by rfc 2640
+                            case "LANG":
+                                response = Language(arguments);
+                                break;
+
                             default:
-                                response = "502 Command not implemented";
+                                response = "502 " + FtpReplies.COMMAND_NOT_IMPLEMENTED;
                                 break;
                         }
                     }
@@ -443,12 +453,36 @@ namespace SharpFtpServer
             _controlWriter.WriteLine("211- Extensions supported:");
             _controlWriter.WriteLine(" MDTM");
             _controlWriter.WriteLine(" SIZE");
+            _controlWriter.WriteLine(" UTF8");
+            _controlWriter.WriteLine(" LANG EN*;FR");
             return "211 End";
         }
 
         private string Options(string arguments)
         {
+            if (arguments == "UTF8 ON")
+            {
+                _stringEncoding = Encoding.UTF8;
+                return "200 UTF8 Encoding turned on";
+            }
+
             return "200 Looks good to me...";
+        }
+
+        private string Language(string arguments)
+        {
+            if (arguments.StartsWith("en"))
+            {
+                FtpReplies.Culture = CultureInfo.GetCultureInfo("en");
+                return "200 Using English";
+            }
+            else if (arguments.StartsWith("fr"))
+            {
+                FtpReplies.Culture = CultureInfo.GetCultureInfo("fr");
+                return "200 Using French";
+            }
+
+            return "504 Language not implemented, using English";
         }
 
         private string Auth(string authMode)
