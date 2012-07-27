@@ -9,6 +9,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentat
 		docs\rfc2389.txt = docs\rfc2389.txt
 		docs\rfc2821.txt = docs\rfc2821.txt
 		docs\rfc3659.txt = docs\rfc3659.txt
+		docs\rfc4226.txt = docs\rfc4226.txt
+		docs\rfc6238.txt = docs\rfc6238.txt
 		docs\rfc959.txt = docs\rfc959.txt
 	EndProjectSection
 EndProject
