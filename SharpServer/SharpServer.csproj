@@ -80,7 +80,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Email\SmtpClientConnection.cs" />
-    <Compile Include="User.cs" />
+    <Compile Include="Ftp\FtpUser.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

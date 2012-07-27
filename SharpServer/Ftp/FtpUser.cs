@@ -7,7 +7,7 @@ using System.Xml.Serialization;
 namespace SharpServer
 {
     [Serializable]
-    public class User
+    public class FtpUser
     {
         [XmlAttribute("username")]
         public string UserName { get; set; }
@@ -25,24 +25,24 @@ namespace SharpServer
         public bool IsAnonymous { get; set; }
     }
 
-    [Obsolete]
-    public static class UserStore
+    [Obsolete("This is not a real user store. It is just a stand-in for testing. DO NOT USE IN PRODUCTION CODE.")]
+    public static class FtpUserStore
     {
-        private static List<User> _users;
+        private static List<FtpUser> _users;
 
-        static UserStore()
+        static FtpUserStore()
         {
-            _users = new List<User>();
+            _users = new List<FtpUser>();
 
             XmlSerializer serializer = new XmlSerializer(_users.GetType(), new XmlRootAttribute("Users"));
 
             if (File.Exists("users.xml"))
             {
-                _users = serializer.Deserialize(new StreamReader("users.xml")) as List<User>;
+                _users = serializer.Deserialize(new StreamReader("users.xml")) as List<FtpUser>;
             }
             else
             {
-                _users.Add(new User
+                _users.Add(new FtpUser
                 {
                     UserName = "rick",
                     Password = "test",
@@ -56,13 +56,13 @@ namespace SharpServer
             }
         }
 
-        public static User Validate(string username, string password)
+        public static FtpUser Validate(string username, string password)
         {
-            User user = (from u in _users where u.UserName == username && u.Password == password select u).SingleOrDefault();
+            FtpUser user = (from u in _users where u.UserName == username && u.Password == password select u).SingleOrDefault();
 
             if (user == null)
             {
-                user = new User
+                user = new FtpUser
                 {
                     UserName = username,
                     HomeDir = "C:\\Utils",
@@ -74,9 +74,9 @@ namespace SharpServer
         }
 
 
-        public static User Validate(string username, string password, string twoFactorCode)
+        public static FtpUser Validate(string username, string password, string twoFactorCode)
         {
-            User user = (from u in _users where u.UserName == username && u.Password == password select u).SingleOrDefault();
+            FtpUser user = (from u in _users where u.UserName == username && u.Password == password select u).SingleOrDefault();
 
             if (TwoFactor.TimeBasedOneTimePassword.IsValid(user.TwoFactorSecret, twoFactorCode))
             {

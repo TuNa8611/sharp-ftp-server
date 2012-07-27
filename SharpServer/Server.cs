@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using log4net;
-using System.Timers;
 
 namespace SharpServer
 {
-
     public class Server<T> : IDisposable where T : ClientConnection, new()
     {
         private static readonly object _listLock = new object();
