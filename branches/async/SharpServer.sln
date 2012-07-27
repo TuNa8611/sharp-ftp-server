@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpServer", "SharpServer\SharpServer.csproj", "{88C01A84-43F1-4928-A771-45EE39362743}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{20D69399-0B6B-48AA-AF3E-60E6BFFD6514}"
+	ProjectSection(SolutionItems) = preProject
+		docs\rfc2228.txt = docs\rfc2228.txt
+		docs\rfc2389.txt = docs\rfc2389.txt
+		docs\rfc2821.txt = docs\rfc2821.txt
+		docs\rfc3659.txt = docs\rfc3659.txt
+		docs\rfc959.txt = docs\rfc959.txt
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{88C01A84-43F1-4928-A771-45EE39362743}.Debug|x86.ActiveCfg = Debug|x86
+		{88C01A84-43F1-4928-A771-45EE39362743}.Debug|x86.Build.0 = Debug|x86
+		{88C01A84-43F1-4928-A771-45EE39362743}.Release|x86.ActiveCfg = Release|x86
+		{88C01A84-43F1-4928-A771-45EE39362743}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
