@@ -78,6 +78,7 @@ namespace SharpServer.Ftp
             public static readonly Response NOT_IMPLEMENTED_FOR_PARAMETER = new Response { Code = "504", ResourceManager = FtpReplies.ResourceManager, Text = "NOT_IMPLEMENTED_FOR_PARAMETER" };
             public static readonly Response OK = new Response { Code = "200", ResourceManager = FtpReplies.ResourceManager, Text = "OK" };
             public static readonly Response LOGGED_IN = new Response { Code = "230", ResourceManager = FtpReplies.ResourceManager, Text = "LOGGED_IN" };
+            public static readonly Response NEED_TWO_FACTOR_CODE = new Response { Code = "332", ResourceManager = FtpReplies.ResourceManager, Text = "NEED_TWO_FACTOR_CODE" };
             public static readonly Response NOT_LOGGED_IN = new Response { Code = "530", ResourceManager = FtpReplies.ResourceManager, Text = "NOT_LOGGED_IN" };
             public static readonly Response USER_OK = new Response { Code = "331", ResourceManager = FtpReplies.ResourceManager, Text = "USER_OK" };
             public static readonly Response RENAME_FROM = new Response { Code = "350", ResourceManager = FtpReplies.ResourceManager, Text = "RENAME_FROM" };
@@ -148,6 +149,7 @@ namespace SharpServer.Ftp
         private FileStructureType _fileStructureType = FileStructureType.File;
 
         private string _username;
+        private string _password;
         private string _root;
         private string _currentDirectory;
         private IPEndPoint _dataEndpoint;
@@ -292,7 +294,7 @@ namespace SharpServer.Ftp
                         response = FtpResponses.OK.SetCulture(_currentCulture);;
                         break;
                     case "ACCT":
-                        response = FtpResponses.OK.SetCulture(_currentCulture);;
+                        response = Account(cmd.Arguments.FirstOrDefault());
                         break;
                     case "ALLO":
                         response = FtpResponses.OK.SetCulture(_currentCulture);;
@@ -378,7 +380,8 @@ namespace SharpServer.Ftp
 
             Write(FtpResponses.SERVICE_READY.SetCulture(_currentCulture));
 
-            _validCommands.AddRange(new string[] { "AUTH", "USER", "PASS", "QUIT", "HELP", "NOOP" });
+            _validCommands.AddRange(new string[] { "AUTH", "USER", "PASS", "ACCT", "QUIT", "HELP", "NOOP" });
+
             _dataClient = new TcpClient();
 
             Read();
@@ -542,17 +545,41 @@ namespace SharpServer.Ftp
         /// <returns></returns>
         private Response Password(string password)
         {
-            _currentUser = UserStore.Validate(_username, password);
+            SharpServer.User user = UserStore.Validate(_username, password);
+
+            if (user != null)
+            {
+                if (!string.IsNullOrEmpty(user.TwoFactorSecret))
+                {
+                    return FtpResponses.NEED_TWO_FACTOR_CODE.SetCulture(_currentCulture);
+                }
+                else
+                {
+                    _root = _currentUser.HomeDir;
+                    _currentDirectory = _root;
+
+                    if (_currentUser.IsAnonymous)
+                        FtpPerformanceCounters.IncrementAnonymousUsers();
+                    else
+                        FtpPerformanceCounters.IncrementNonAnonymousUsers();
+
+                    return FtpResponses.LOGGED_IN.SetCulture(_currentCulture);
+                }
+            }
+            else
+            {
+                return FtpResponses.NOT_LOGGED_IN.SetCulture(_currentCulture);
+            }
+        }
+
+        private Response Account(string twoFactorCode)
+        {
+            _currentUser = UserStore.Validate(_username, _password, twoFactorCode);
 
             if (_currentUser != null)
             {
                 _root = _currentUser.HomeDir;
                 _currentDirectory = _root;
-
-                if (_currentUser.IsAnonymous)
-                    FtpPerformanceCounters.IncrementAnonymousUsers();
-                else
-                    FtpPerformanceCounters.IncrementNonAnonymousUsers();
 
                 return FtpResponses.LOGGED_IN.SetCulture(_currentCulture);
             }

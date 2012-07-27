@@ -18,6 +18,9 @@ namespace SharpServer
         [XmlAttribute("homedir")]
         public string HomeDir { get; set; }
 
+        [XmlAttribute("twofactorsecret")]
+        public string TwoFactorSecret { get; set; }
+
         [XmlIgnore]
         public bool IsAnonymous { get; set; }
     }
@@ -68,6 +71,19 @@ namespace SharpServer
             }
 
             return user;
+        }
+
+
+        public static User Validate(string username, string password, string twoFactorCode)
+        {
+            User user = (from u in _users where u.UserName == username && u.Password == password select u).SingleOrDefault();
+
+            if (TwoFactor.TimeBasedOneTimePassword.IsValid(user.TwoFactorSecret, twoFactorCode))
+            {
+                return user;
+            }
+
+            return null;
         }
     }
 }

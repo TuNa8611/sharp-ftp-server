@@ -123,6 +123,12 @@
       <Install>true</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TwoFactor\TwoFactor.csproj">
+      <Project>{903279E1-4D47-4F18-A6F6-ED61EAAD8176}</Project>
+      <Name>TwoFactor</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
