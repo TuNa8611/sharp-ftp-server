@@ -150,6 +150,9 @@
   <data name="LOGGED_IN" xml:space="preserve">
     <value>User logged in</value>
   </data>
+  <data name="NEED_TWO_FACTOR_CODE" xml:space="preserve">
+    <value>Need Two Factor Code</value>
+  </data>
   <data name="NOT_IMPLEMENTED" xml:space="preserve">
     <value>Command not implemented</value>
   </data>

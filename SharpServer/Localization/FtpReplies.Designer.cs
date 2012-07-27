@@ -160,6 +160,15 @@ namespace SharpServer.Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Need Two Factor Code.
+        /// </summary>
+        internal static string NEED_TWO_FACTOR_CODE {
+            get {
+                return ResourceManager.GetString("NEED_TWO_FACTOR_CODE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Command not implemented.
         /// </summary>
         internal static string NOT_IMPLEMENTED {
