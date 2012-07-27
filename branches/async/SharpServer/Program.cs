@@ -1,6 +1,6 @@
 ﻿using System;
-using log4net;
 using System.Net;
+using log4net;
 
 namespace SharpServer
 {

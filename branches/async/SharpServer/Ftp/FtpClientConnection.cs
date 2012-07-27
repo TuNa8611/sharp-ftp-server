@@ -6,12 +6,12 @@ using System.Linq;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Resources;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Threading;
 using System.Text.RegularExpressions;
+using System.Threading;
 using SharpServer.Localization;
-using System.Resources;
 
 namespace SharpServer.Ftp
 {
@@ -160,7 +160,7 @@ namespace SharpServer.Ftp
 
         private bool _connected = false;
 
-        private User _currentUser;
+        private FtpUser _currentUser;
         private List<string> _validCommands;
 
         private static readonly Regex _invalidPathChars = new Regex(string.Join("|", Path.GetInvalidPathChars().Select(c => string.Format(CultureInfo.InvariantCulture, "\\u{0:X4}", (int)c))), RegexOptions.Compiled);
@@ -545,7 +545,7 @@ namespace SharpServer.Ftp
         /// <returns></returns>
         private Response Password(string password)
         {
-            SharpServer.User user = UserStore.Validate(_username, password);
+            FtpUser user = FtpUserStore.Validate(_username, password);
 
             if (user != null)
             {
@@ -572,9 +572,14 @@ namespace SharpServer.Ftp
             }
         }
 
+        /// <summary>
+        /// ACCT Command - RFC 959 - Section 4.1.1
+        /// </summary>
+        /// <param name="username"></param>
+        /// <returns></returns>
         private Response Account(string twoFactorCode)
         {
-            _currentUser = UserStore.Validate(_username, _password, twoFactorCode);
+            _currentUser = FtpUserStore.Validate(_username, _password, twoFactorCode);
 
             if (_currentUser != null)
             {

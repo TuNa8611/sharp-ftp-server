@@ -1,6 +1,5 @@
-﻿using System.Diagnostics;
-using System.Threading;
-using System;
+﻿using System;
+using System.Diagnostics;
 
 namespace SharpServer.Ftp
 {
