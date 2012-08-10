@@ -219,7 +219,7 @@ namespace SharpServer.Ftp
                         response = ChangeWorkingDirectory("..");
                         break;
                     case "QUIT":
-                        response = FtpResponses.QUIT.SetCulture(_currentCulture);
+                        response = GetResponse(FtpResponses.QUIT);
                         break;
                     case "REIN":
                         _currentUser = null;
@@ -229,7 +229,7 @@ namespace SharpServer.Ftp
                         _currentEncoding = Encoding.ASCII;
                         ControlStreamEncoding = Encoding.ASCII;
 
-                        response = FtpResponses.SERVICE_READY.SetCulture(_currentCulture);
+                        response = GetResponse(FtpResponses.SERVICE_READY);
                         break;
                     case "PORT":
                         response = Port(cmd.RawArguments);
@@ -250,7 +250,7 @@ namespace SharpServer.Ftp
                         break;
                     case "RNFR":
                         _renameFrom = cmd.Arguments.FirstOrDefault();
-                        response = FtpResponses.RENAME_FROM.SetCulture(_currentCulture);
+                        response = GetResponse(FtpResponses.RENAME_FROM);
                         break;
                     case "RNTO":
                         response = Rename(_renameFrom, cmd.Arguments.FirstOrDefault());
@@ -288,37 +288,37 @@ namespace SharpServer.Ftp
                         logEntry.Date = DateTime.Now;
                         break;
                     case "SYST":
-                        response = FtpResponses.SYSTEM.SetCulture(_currentCulture);
+                        response = GetResponse(FtpResponses.SYSTEM);
                         break;
                     case "NOOP":
-                        response = FtpResponses.OK.SetCulture(_currentCulture);;
+                        response = GetResponse(FtpResponses.OK);
                         break;
                     case "ACCT":
                         response = Account(cmd.Arguments.FirstOrDefault());
                         break;
                     case "ALLO":
-                        response = FtpResponses.OK.SetCulture(_currentCulture);;
+                        response = GetResponse(FtpResponses.OK);
                         break;
                     case "NLST":
                         response = NameList(cmd.Arguments.FirstOrDefault() ?? _currentDirectory);
                         break;
                     case "SITE":
-                        response = FtpResponses.NOT_IMPLEMENTED.SetCulture(_currentCulture);;
+                        response = GetResponse(FtpResponses.NOT_IMPLEMENTED);
                         break;
                     case "STAT":
-                        response = FtpResponses.NOT_IMPLEMENTED.SetCulture(_currentCulture);;
+                        response = GetResponse(FtpResponses.NOT_IMPLEMENTED);
                         break;
                     case "HELP":
-                        response = FtpResponses.NOT_IMPLEMENTED.SetCulture(_currentCulture);;
+                        response = GetResponse(FtpResponses.NOT_IMPLEMENTED);
                         break;
                     case "SMNT":
-                        response = FtpResponses.NOT_IMPLEMENTED.SetCulture(_currentCulture);;
+                        response = GetResponse(FtpResponses.NOT_IMPLEMENTED);
                         break;
                     case "REST":
-                        response = FtpResponses.NOT_IMPLEMENTED.SetCulture(_currentCulture);;
+                        response = GetResponse(FtpResponses.NOT_IMPLEMENTED);
                         break;
                     case "ABOR":
-                        response = FtpResponses.NOT_IMPLEMENTED.SetCulture(_currentCulture);;
+                        response = GetResponse(FtpResponses.NOT_IMPLEMENTED);
                         break;
 
                     // Extensions defined by rfc 2228
@@ -328,7 +328,7 @@ namespace SharpServer.Ftp
 
                     // Extensions defined by rfc 2389
                     case "FEAT":
-                        response = FtpResponses.FEATURES.SetCulture(_currentCulture);;
+                        response = GetResponse(FtpResponses.FEATURES);
                         break;
                     case "OPTS":
                         response = Options(cmd.Arguments);
@@ -358,7 +358,7 @@ namespace SharpServer.Ftp
                         break;
 
                     default:
-                        response = FtpResponses.NOT_IMPLEMENTED.SetCulture(_currentCulture);;
+                        response = GetResponse(FtpResponses.NOT_IMPLEMENTED);
                         break;
                 }
             }
@@ -378,7 +378,7 @@ namespace SharpServer.Ftp
 
             _connected = true;
 
-            Write(FtpResponses.SERVICE_READY.SetCulture(_currentCulture));
+            Write(GetResponse(FtpResponses.SERVICE_READY));
 
             _validCommands.AddRange(new string[] { "AUTH", "USER", "PASS", "ACCT", "QUIT", "HELP", "NOOP" });
 
@@ -503,7 +503,7 @@ namespace SharpServer.Ftp
         {
             if (_currentUser == null)
             {
-                return FtpResponses.NOT_LOGGED_IN.SetCulture(_currentCulture);
+                return GetResponse(FtpResponses.NOT_LOGGED_IN);
             }
 
             return null;
@@ -511,7 +511,7 @@ namespace SharpServer.Ftp
 
         private long CopyStream(Stream input, Stream output, Action<int> perfAction)
         {
-            Stream limitedStream = output; // new RateLimitingStream(output, 131072, 0.5);
+            Stream limitedStream = output;
 
             if (_connectionType == TransferType.Image)
             {
@@ -521,6 +521,11 @@ namespace SharpServer.Ftp
             {
                 return CopyStream(input, limitedStream, BUFFER_SIZE, _currentEncoding, perfAction);
             }
+        }
+
+        private Response GetResponse(Response response)
+        {
+            return response.SetCulture(_currentCulture);
         }
 
         #region FTP Commands
@@ -535,7 +540,7 @@ namespace SharpServer.Ftp
             FtpPerformanceCounters.IncrementTotalLogonAttempts();
 
             _username = username;
-            return FtpResponses.USER_OK.SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.USER_OK);
         }
 
         /// <summary>
@@ -551,7 +556,7 @@ namespace SharpServer.Ftp
             {
                 if (!string.IsNullOrEmpty(user.TwoFactorSecret))
                 {
-                    return FtpResponses.NEED_TWO_FACTOR_CODE.SetCulture(_currentCulture);
+                    return GetResponse(FtpResponses.NEED_TWO_FACTOR_CODE);
                 }
                 else
                 {
@@ -563,12 +568,12 @@ namespace SharpServer.Ftp
                     else
                         FtpPerformanceCounters.IncrementNonAnonymousUsers();
 
-                    return FtpResponses.LOGGED_IN.SetCulture(_currentCulture);
+                    return GetResponse(FtpResponses.LOGGED_IN);
                 }
             }
             else
             {
-                return FtpResponses.NOT_LOGGED_IN.SetCulture(_currentCulture);
+                return GetResponse(FtpResponses.NOT_LOGGED_IN);
             }
         }
 
@@ -586,11 +591,11 @@ namespace SharpServer.Ftp
                 _root = _currentUser.HomeDir;
                 _currentDirectory = _root;
 
-                return FtpResponses.LOGGED_IN.SetCulture(_currentCulture);
+                return GetResponse(FtpResponses.LOGGED_IN);
             }
             else
             {
-                return FtpResponses.NOT_LOGGED_IN.SetCulture(_currentCulture);
+                return GetResponse(FtpResponses.NOT_LOGGED_IN);
             }
         }
 
@@ -635,7 +640,7 @@ namespace SharpServer.Ftp
                 }
             }
 
-            return FtpResponses.OK.SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.OK);
         }
 
         /// <summary>
@@ -657,7 +662,7 @@ namespace SharpServer.Ftp
 
             _dataEndpoint = new IPEndPoint(new IPAddress(ipAddress), BitConverter.ToInt16(port, 0));
 
-            return FtpResponses.OK.SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.OK);
         }
 
         private Response EPort(string hostPort)
@@ -675,7 +680,7 @@ namespace SharpServer.Ftp
 
             _dataEndpoint = new IPEndPoint(IPAddress.Parse(ipAddress), int.Parse(port));
 
-            return FtpResponses.OK.SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.OK);
         }
 
         /// <summary>
@@ -698,7 +703,7 @@ namespace SharpServer.Ftp
             catch
             {
                 _log.Error("No more ports available");
-                return FtpResponses.UNABLE_TO_OPEN_DATA_CONNECTION.SetCulture(_currentCulture);
+                return GetResponse(FtpResponses.UNABLE_TO_OPEN_DATA_CONNECTION);
             }
 
             IPEndPoint passiveListenerEndpoint = (IPEndPoint)_passiveListener.LocalEndpoint;
@@ -711,7 +716,7 @@ namespace SharpServer.Ftp
             if (BitConverter.IsLittleEndian)
                 Array.Reverse(portArray);
 
-            return FtpResponses.ENTERING_PASSIVE_MODE.SetData(address[0], address[1], address[2], address[3], portArray[0], portArray[1]).SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.ENTERING_PASSIVE_MODE.SetData(address[0], address[1], address[2], address[3], portArray[0], portArray[1]));
         }
 
         private Response EPassive()
@@ -729,12 +734,12 @@ namespace SharpServer.Ftp
             catch
             {
                 _log.Error("No more ports available");
-                return FtpResponses.UNABLE_TO_OPEN_DATA_CONNECTION.SetCulture(_currentCulture);
+                return GetResponse(FtpResponses.UNABLE_TO_OPEN_DATA_CONNECTION);
             }
 
             IPEndPoint passiveListenerEndpoint = (IPEndPoint)_passiveListener.LocalEndpoint;
 
-            return FtpResponses.ENTERING_EXTENDED_PASSIVE_MODE.SetData(passiveListenerEndpoint.Port).SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.ENTERING_EXTENDED_PASSIVE_MODE.SetData(passiveListenerEndpoint.Port));
         }
 
         /// <summary>
@@ -753,7 +758,7 @@ namespace SharpServer.Ftp
                     _connectionType = TransferType.Image;
                     break;
                 default:
-                    return FtpResponses.NOT_IMPLEMENTED_FOR_PARAMETER.SetCulture(_currentCulture);
+                    return GetResponse(FtpResponses.NOT_IMPLEMENTED_FOR_PARAMETER);
             }
 
             if (!string.IsNullOrWhiteSpace(formatControl))
@@ -764,11 +769,11 @@ namespace SharpServer.Ftp
                         _formatControlType = FormatControlType.NonPrint;
                         break;
                     default:
-                        return FtpResponses.NOT_IMPLEMENTED_FOR_PARAMETER.SetCulture(_currentCulture);
+                        return GetResponse(FtpResponses.NOT_IMPLEMENTED_FOR_PARAMETER);
                 }
             }
 
-            return FtpResponses.OK.SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.OK);
         }
 
         /// <summary>
@@ -785,12 +790,12 @@ namespace SharpServer.Ftp
                     break;
                 case "R":
                 case "P":
-                    return FtpResponses.NOT_IMPLEMENTED_FOR_PARAMETER.SetCulture(_currentCulture);
+                    return GetResponse(FtpResponses.NOT_IMPLEMENTED_FOR_PARAMETER);
                 default:
-                    return FtpResponses.PARAMETER_NOT_RECOGNIZED.SetData(structure).SetCulture(_currentCulture);
+                    return GetResponse(FtpResponses.PARAMETER_NOT_RECOGNIZED.SetData(structure));
             }
 
-            return FtpResponses.OK.SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.OK);
         }
 
         /// <summary>
@@ -802,11 +807,11 @@ namespace SharpServer.Ftp
         {
             if (mode.ToUpperInvariant() == "S")
             {
-                return FtpResponses.OK.SetCulture(_currentCulture);
+                return GetResponse(FtpResponses.OK);
             }
             else
             {
-                return FtpResponses.NOT_IMPLEMENTED_FOR_PARAMETER.SetCulture(_currentCulture);
+                return GetResponse(FtpResponses.NOT_IMPLEMENTED_FOR_PARAMETER);
             }
         }
 
@@ -827,11 +832,11 @@ namespace SharpServer.Ftp
 
                     SetupDataConnectionOperation(state);
 
-                    return FtpResponses.OPENING_DATA_TRANSFER.SetData(_dataConnectionType, "RETR").SetCulture(_currentCulture);
+                    return GetResponse(FtpResponses.OPENING_DATA_TRANSFER.SetData(_dataConnectionType, "RETR"));
                 }
             }
 
-            return FtpResponses.FILE_NOT_FOUND.SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.FILE_NOT_FOUND);
         }
 
         /// <summary>
@@ -849,10 +854,10 @@ namespace SharpServer.Ftp
 
                 SetupDataConnectionOperation(state);
 
-                return FtpResponses.OPENING_DATA_TRANSFER.SetData(_dataConnectionType, "STOR").SetCulture(_currentCulture);
+                return GetResponse(FtpResponses.OPENING_DATA_TRANSFER.SetData(_dataConnectionType, "STOR"));
             }
 
-            return FtpResponses.FILE_ACTION_NOT_TAKEN.SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.FILE_ACTION_NOT_TAKEN);
         }
 
         /// <summary>
@@ -868,7 +873,7 @@ namespace SharpServer.Ftp
 
             SetupDataConnectionOperation(state);
 
-            return FtpResponses.OPENING_DATA_TRANSFER.SetData(_dataConnectionType, "STOU").SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.OPENING_DATA_TRANSFER.SetData(_dataConnectionType, "STOU"));
         }
 
         /// <summary>
@@ -886,10 +891,10 @@ namespace SharpServer.Ftp
 
                 SetupDataConnectionOperation(state);
 
-                return FtpResponses.OPENING_DATA_TRANSFER.SetData(_dataConnectionType, "APPE").SetCulture(_currentCulture);
+                return GetResponse(FtpResponses.OPENING_DATA_TRANSFER.SetData(_dataConnectionType, "APPE"));
             }
 
-            return FtpResponses.FILE_ACTION_NOT_TAKEN.SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.FILE_ACTION_NOT_TAKEN);
         }
 
         /// <summary>
@@ -902,7 +907,7 @@ namespace SharpServer.Ftp
         {
             if (string.IsNullOrWhiteSpace(renameFrom) || string.IsNullOrWhiteSpace(renameTo))
             {
-                return FtpResponses.FILE_ACTION_NOT_TAKEN.SetCulture(_currentCulture);
+                return GetResponse(FtpResponses.FILE_ACTION_NOT_TAKEN);
             }
 
             renameFrom = NormalizeFilename(renameFrom);
@@ -920,13 +925,13 @@ namespace SharpServer.Ftp
                 }
                 else
                 {
-                    return FtpResponses.FILE_ACTION_NOT_TAKEN.SetCulture(_currentCulture);
+                    return GetResponse(FtpResponses.FILE_ACTION_NOT_TAKEN);
                 }
 
-                return FtpResponses.FILE_ACTION_COMPLETE.SetCulture(_currentCulture);
+                return GetResponse(FtpResponses.FILE_ACTION_COMPLETE);
             }
 
-            return FtpResponses.FILE_ACTION_NOT_TAKEN.SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.FILE_ACTION_NOT_TAKEN);
         }
 
         /// <summary>
@@ -946,13 +951,13 @@ namespace SharpServer.Ftp
                 }
                 else
                 {
-                    return FtpResponses.FILE_NOT_FOUND.SetCulture(_currentCulture);
+                    return GetResponse(FtpResponses.FILE_NOT_FOUND);
                 }
 
-                return FtpResponses.FILE_ACTION_COMPLETE.SetCulture(_currentCulture);
+                return GetResponse(FtpResponses.FILE_ACTION_COMPLETE);
             }
 
-            return FtpResponses.FILE_NOT_FOUND.SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.FILE_NOT_FOUND);
         }
 
         /// <summary>
@@ -972,13 +977,13 @@ namespace SharpServer.Ftp
                 }
                 else
                 {
-                    return FtpResponses.DIRECTORY_NOT_FOUND.SetCulture(_currentCulture);
+                    return GetResponse(FtpResponses.DIRECTORY_NOT_FOUND);
                 }
 
-                return FtpResponses.FILE_ACTION_COMPLETE.SetCulture(_currentCulture);
+                return GetResponse(FtpResponses.FILE_ACTION_COMPLETE);
             }
 
-            return FtpResponses.DIRECTORY_NOT_FOUND.SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.DIRECTORY_NOT_FOUND);
         }
 
         /// <summary>
@@ -998,13 +1003,13 @@ namespace SharpServer.Ftp
                 }
                 else
                 {
-                    return FtpResponses.DIRECTORY_EXISTS.SetCulture(_currentCulture);
+                    return GetResponse(FtpResponses.DIRECTORY_EXISTS);
                 }
 
-                return FtpResponses.FILE_ACTION_COMPLETE.SetCulture(_currentCulture);
+                return GetResponse(FtpResponses.FILE_ACTION_COMPLETE);
             }
 
-            return FtpResponses.DIRECTORY_NOT_FOUND.SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.DIRECTORY_NOT_FOUND);
         }
 
         /// <summary>
@@ -1021,7 +1026,7 @@ namespace SharpServer.Ftp
                 current = "/";
             }
 
-            return FtpResponses.CURRENT_DIRECTORY.SetData(current).SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.CURRENT_DIRECTORY.SetData(current));
         }
 
         private Response NameList(string pathname)
@@ -1034,10 +1039,10 @@ namespace SharpServer.Ftp
 
                 SetupDataConnectionOperation(state);
 
-                return FtpResponses.OPENING_DATA_TRANSFER.SetData(_dataConnectionType, "NLST").SetCulture(_currentCulture);
+                return GetResponse(FtpResponses.OPENING_DATA_TRANSFER.SetData(_dataConnectionType, "NLST"));
             }
 
-            return FtpResponses.FILE_ACTION_NOT_TAKEN.SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.FILE_ACTION_NOT_TAKEN);
         }
 
 
@@ -1056,10 +1061,10 @@ namespace SharpServer.Ftp
 
                 SetupDataConnectionOperation(state);
 
-                return FtpResponses.OPENING_DATA_TRANSFER.SetData(_dataConnectionType, "LIST").SetCulture(_currentCulture);
+                return GetResponse(FtpResponses.OPENING_DATA_TRANSFER.SetData(_dataConnectionType, "LIST"));
             }
 
-            return FtpResponses.FILE_ACTION_NOT_TAKEN.SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.FILE_ACTION_NOT_TAKEN);
         }
 
         /// <summary>
@@ -1071,11 +1076,11 @@ namespace SharpServer.Ftp
         {
             if (authMode == "TLS")
             {
-                return FtpResponses.ENABLING_TLS.SetCulture(_currentCulture);
+                return GetResponse(FtpResponses.ENABLING_TLS);
             }
             else
             {
-                return FtpResponses.NOT_IMPLEMENTED_FOR_PARAMETER.SetCulture(_currentCulture);
+                return GetResponse(FtpResponses.NOT_IMPLEMENTED_FOR_PARAMETER);
             }
         }
 
@@ -1091,10 +1096,10 @@ namespace SharpServer.Ftp
                 _currentEncoding = Encoding.UTF8;
                 ControlStreamEncoding = Encoding.UTF8;
 
-                return FtpResponses.UTF8_ENCODING_ON.SetCulture(_currentCulture);
+                return GetResponse(FtpResponses.UTF8_ENCODING_ON);
             }
 
-            return FtpResponses.OK.SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.OK);
         }
 
         /// <summary>
@@ -1114,7 +1119,7 @@ namespace SharpServer.Ftp
                 }
             }
 
-            return FtpResponses.FILE_NOT_FOUND.SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.FILE_NOT_FOUND);
         }
 
         /// <summary>
@@ -1141,7 +1146,7 @@ namespace SharpServer.Ftp
                 }
             }
 
-            return FtpResponses.FILE_NOT_FOUND.SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.FILE_NOT_FOUND);
         }
 
         /// <summary>
@@ -1226,7 +1231,7 @@ namespace SharpServer.Ftp
             catch (Exception ex)
             {
                 _log.Error(ex);
-                response = FtpResponses.TRANSFER_ABORTED.SetCulture(_currentCulture);
+                response = GetResponse(FtpResponses.TRANSFER_ABORTED);
             }
 
             if (_dataClient != null)
@@ -1252,7 +1257,7 @@ namespace SharpServer.Ftp
 
             FtpPerformanceCounters.IncrementFilesSent();
 
-            return FtpResponses.TRANSFER_SUCCESSFUL.SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.TRANSFER_SUCCESSFUL);
         }
 
         private Response StoreOperation(NetworkStream dataStream, string pathname)
@@ -1278,7 +1283,7 @@ namespace SharpServer.Ftp
 
             FtpPerformanceCounters.IncrementFilesReceived();
 
-            return FtpResponses.TRANSFER_SUCCESSFUL.SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.TRANSFER_SUCCESSFUL);
         }
 
         private Response AppendOperation(NetworkStream dataStream, string pathname)
@@ -1304,7 +1309,7 @@ namespace SharpServer.Ftp
 
             FtpPerformanceCounters.IncrementFilesReceived();
 
-            return FtpResponses.TRANSFER_SUCCESSFUL.SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.TRANSFER_SUCCESSFUL);
         }
 
         private Response ListOperation(NetworkStream dataStream, string pathname)
@@ -1375,7 +1380,7 @@ namespace SharpServer.Ftp
 
             _log.Info(logEntry);
 
-            return FtpResponses.TRANSFER_SUCCESSFUL.SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.TRANSFER_SUCCESSFUL);
         }
 
         private Response NameListOperation(NetworkStream dataStream, string pathname)
@@ -1401,7 +1406,7 @@ namespace SharpServer.Ftp
 
             _log.Info(logEntry);
 
-            return FtpResponses.TRANSFER_SUCCESSFUL.SetCulture(_currentCulture);
+            return GetResponse(FtpResponses.TRANSFER_SUCCESSFUL);
         }
 
         #endregion

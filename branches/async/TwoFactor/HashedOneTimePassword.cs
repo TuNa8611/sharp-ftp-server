@@ -9,13 +9,7 @@ namespace TwoFactor
     {
         public static string GeneratePassword(string secret, long iterationNumber, int digits = 6)
         {
-            byte[] counter = new byte[8];
-
-            for (int i = counter.Length - 1; i >= 0; i--)
-            {
-                counter[i] = (byte)(iterationNumber & 0xff);
-                iterationNumber >>= 8;
-            }
+            byte[] counter = BitConverter.GetBytes(iterationNumber);
 
             byte[] hash = GetHMAC(Encoding.ASCII.GetBytes(secret), counter);
 
